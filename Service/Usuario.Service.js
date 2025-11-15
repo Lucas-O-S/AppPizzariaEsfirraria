@@ -1,130 +1,178 @@
 import { ExecuteHttpRequest } from "../utils/ExecuteHttpRequest";
-import { multipartHeader } from "../utils/HeaderHelper";
-import AlunoModel from "../Models/AlunoModel"
-import ImageHelper from "../utils/ImageHelper";
+import { jsonHeader } from "../utils/HeaderHelper";
+import { AuthHelper } from "../utils/AuthHelper";
+import UsuarioModel from "../Models/UsuarioModel";
 
 export class UsuarioService {
-    
 
+    static async login(credentials) {
+        console.log("Entrou em login");
 
-    static async update(alunoWrapper, id) {
-        console.log("entrou em update")
-    
         const headers = {
-            ...multipartHeader
+            ...jsonHeader
         };
 
         const result = await ExecuteHttpRequest.callout({
-            url:"/aluno/"+id,
-            method:"PUT",
-            body:alunoWrapper,
-            headers:headers 
+            url: "/auth/login",
+            method: "POST",
+            body: credentials,
+            headers: headers
         });
 
-        console.log(JSON.stringify(result))
-        
+        console.log(JSON.stringify(result));
+
+        if (result.status !== 200) {
+            throw new Error(result.data.message);
+        }
+
+        const accessToken = result.data.data.access_token;
+        AuthHelper.setAccessToken(accessToken);
+
+        return result.data;
+    }
+
+    static async create(usuarioModel) {
+        console.log("Entrou em create");
+
+        const headers = {
+            ...jsonHeader,
+        };
+
+        const body = {
+            name: usuarioModel.name,
+            password: usuarioModel.password
+        };
+
+        const result = await ExecuteHttpRequest.callout({
+            url: "/usuario",
+            method: "POST",
+            body: body,
+            headers: headers
+        });
+
+        console.log(JSON.stringify(result));
+
         const resultBody = result.data;
-        if(result.status != "200"){
+        if (result.status !== 201) {
             throw new Error(resultBody.message);
-            
         }
 
         return result;
     }
 
-    static async create(alunoWrapper){
-        console.log("entrou em create")
-    
+    static async findAll() {
+        console.log("Entrou em findAll");
+
         const headers = {
-            ...multipartHeader
+            ...AuthHelper.getAuthHeader()
         };
 
         const result = await ExecuteHttpRequest.callout({
-            url:"/aluno",
-            method:"POST",
-            body:alunoWrapper,
-            headers:headers 
+            url: "/usuario",
+            method: "GET",
+            headers: headers
         });
-        
-        const resultBody = result.data; 
-        if(result.status != "201"){
+
+        console.log(JSON.stringify(result));
+
+        let usuariosList = [];
+
+        if (result.data && result.data.data) {
+            result.data.data.forEach((dataUnit) => {
+                usuariosList.push(new UsuarioModel({
+                    id: dataUnit.id,
+                    name: dataUnit.name,
+                    password: ""
+                }));
+            });
+        }
+
+        console.log(usuariosList);
+
+        if (result.status !== 200) {
+            throw new Error(result.data.message);
+        }
+
+        return usuariosList;
+    }
+
+    static async findOne(id) {
+        console.log("Entrou em findOne");
+
+        const headers = {
+            ...AuthHelper.getAuthHeader()
+        };
+
+        const result = await ExecuteHttpRequest.callout({
+            url: "/usuario/" + id,
+            method: "GET",
+            headers: headers
+        });
+
+        console.log(JSON.stringify(result));
+
+        if (result.status !== 200) {
+            throw new Error(result.data.message);
+        }
+
+        const dataUnit = result.data.data;
+
+        return new UsuarioModel({
+            id: dataUnit.id,
+            name: dataUnit.name,
+            password: ""
+        });
+    }
+
+    static async update(usuarioModel, id) {
+        console.log("Entrou em update");
+
+        const headers = {
+            ...jsonHeader,
+            ...AuthHelper.getAuthHeader()
+        };
+
+        const body = {
+            name: usuarioModel.name,
+            password: usuarioModel.password
+        };
+
+        const result = await ExecuteHttpRequest.callout({
+            url: "/usuario/" + id,
+            method: "PUT",
+            body: body,
+            headers: headers
+        });
+
+        console.log(JSON.stringify(result));
+
+        const resultBody = result.data;
+        if (result.status !== 200) {
             throw new Error(resultBody.message);
-            
         }
 
         return result;
-
     }
 
-    static async findAll(){
-        console.log("Entrou em find All");
-
-        const result = await ExecuteHttpRequest.callout({
-            url:"/aluno",
-            method:"GET",
-        });
-
-        console.log(JSON.stringify(result));
-
-        let alunosList = []
-
-        result.data.data.forEach((dataUnit) => {
-            alunosList.push(new AlunoModel({
-                id : dataUnit.id,
-                nome: dataUnit.nome,
-                ra : dataUnit.ra
-            }))
-        });
-
-        console.log(alunosList);
-
-        if(result.status != "200"){
-            throw new Error(result.data.message);
-            
-        }
-
-        return alunosList;
-            
-
-    }
-
-    static async findOne(id){
-        console.log("Entrou em find one");
-
-        const result = await ExecuteHttpRequest.callout({
-            url:"/aluno/"+id,
-            method:"GET",
-    });
-
-        console.log(JSON.stringify(result));
-
-        if(result.status != "200"){
-            throw new Error(result.data.message);
-            
-        }
-        const dataUnit = result.data.dataUnit;
-        
-        return new AlunoModel({
-            id : dataUnit.id,
-            nome : dataUnit.nome,
-            ra : dataUnit.ra,
-            imagem64 : ImageHelper.convertByteToBase64(dataUnit.imagem),
-        });
-    }
-    static async delete(id){
+    static async delete(id) {
         console.log("Entrou em delete");
 
+        const headers = {
+            ...AuthHelper.getAuthHeader()
+        };
+
         const result = await ExecuteHttpRequest.callout({
-            url:"/aluno/"+id,
-            method:"DELETE",
+            url: "/usuario/" + id,
+            method: "DELETE",
+            headers: headers
         });
 
         console.log(JSON.stringify(result));
 
-        if(result.status != "200"){
+        if (result.status !== 200) {
             throw new Error(result.data.message);
-            
         }
-    }
 
-} 
+        return result;
+    }
+}

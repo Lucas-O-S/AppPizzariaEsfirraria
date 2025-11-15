@@ -2,20 +2,23 @@ import { ExecuteHttpRequest } from "../utils/ExecuteHttpRequest";
 import { jsonHeader } from "../utils/HeaderHelper";
 import { AuthHelper } from "../utils/AuthHelper";
 import UsuarioModel from "../Models/UsuarioModel";
+import { UsuarioWrapper } from "../Wrappers/UsuarioWrapper";
 
 export class UsuarioService {
 
-    static async login(credentials) {
+    static async login(usuarioModel) {
         console.log("Entrou em login");
 
         const headers = {
             ...jsonHeader
         };
 
+        const body = UsuarioWrapper(usuarioModel);
+
         const result = await ExecuteHttpRequest.callout({
-            url: "/auth/login",
+            url: "/login",
             method: "POST",
-            body: credentials,
+            body: body,
             headers: headers
         });
 

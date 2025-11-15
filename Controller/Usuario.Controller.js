@@ -1,70 +1,72 @@
-import { AlunoService } from "../Service/Aluno.Service";
-import { UsuarioWrapper } from "../Wrappers/UsuarioWrapper";
-
+import { UsuarioService } from "../Service/Usuario.Service";
+import UsuarioModel from "../Models/UsuarioModel";
 
 export default class UsuarioController {
 
-    
+    static async login(usuarioModel) {
+        try {
+            const result = await UsuarioService.login(usuarioModel);
 
-    static async saveAluno(alunoModel){
-        try{
-            console.log("nome do aluno: " + alunoModel.nome)
+            return result;
+        } catch (error) {
+            console.log("Erro ao fazer login:", error.message);
+            throw new Error(error.message);
+        }
+    }
 
-            const request = UsuarioWrapper(alunoModel);
+    static async createUsuario(usuarioModel) {
+        try {
+            const result = await UsuarioService.create(usuarioModel);
+            return result;
+        } catch (error) {
+            console.log("Erro ao criar usuário:", error.message);
+            throw new Error(error.message);
+        }
+    }
 
-            console.log(request);
-            
-            if(alunoModel.id){
-                await AlunoService.update(request, alunoModel.id);
-            }        
-            else{
-                await AlunoService.create(request);
+    static async findAllUsuarios() {
+        try {
+            return await UsuarioService.findAll();
+        } catch (error) {
+            console.log("Erro ao buscar usuários:", error.message);
+            throw new Error(error.message);
+        }
+    }
+
+    static async findOneUsuario(id) {
+        try {
+            if (!id || isNaN(id)) {
+                throw new Error("ID do usuário inválido");
             }
 
-
-        }
-        catch(Error){
-            console.log("Erro ao salvar aluno:", Error.message);
-            throw new Error(Error.message);
-             
-        }
-
-    }
-
-    static async findAll(){
-        try{
-            return await AlunoService.findAll();
-        }
-        catch(Erro)
-        {
-            console.log("Erro ao buscar alunos:", Error.message);
-            throw new Error(Error.message);
+            return await UsuarioService.findOne(id);
+        } catch (error) {
+            console.log("Erro ao buscar usuário:", error.message);
+            throw new Error(error.message);
         }
     }
 
-    static async findOne(id){
-        try{
-            return await AlunoService.findOne(id);
-        }
-        catch(Erro)
-        {
-            console.log("Erro ao buscar alunos:", Error.message);
-            throw new Error(Error.message);
-        }
-    }
-
-    static async delete(id){
-        try{
-            await AlunoService.delete(id);
-        }
-        catch(Erro)
-        {
-            console.log("Erro ao deletar alunos:", Error.message);
-            throw new Error(Error.message);
+    static async updateUsuario(usuarioModel, id) {
+        try {
+            const result = await UsuarioService.update(usuarioModel, id);
+            return result;
+        } catch (error) {
+            console.log("Erro ao atualizar usuário:", error.message);
+            throw new Error(error.message);
         }
     }
 
-    
+    static async deleteUsuario(id) {
+        try {
+            if (!id || isNaN(id)) {
+                throw new Error("ID do usuário inválido");
+            }
 
-
+            const result = await UsuarioService.delete(id);
+            return result;
+        } catch (error) {
+            console.log("Erro ao deletar usuário:", error.message);
+            throw new Error(error.message);
+        }
+    }
 }

@@ -4,6 +4,11 @@ import { StatusBar } from 'expo-status-bar';
 import LoginScreen from './Screens/LoginScreen';
 import HomeScreen from './Screens/HomeScreen';
 import RegisterScreen from './Screens/RegisterScreen';
+import UserScreen from './Screens/UserScreen';
+import CartScreen from './Screens/CartScreen';
+import ProductListScreen from './Screens/ProductListScreen';
+import OrderCreateScreen from './Screens/OrderCreateScreen';
+import UserManagementScreen from './Screens/UserManagementScreen';
 
 const Stack = createNativeStackNavigator();
 export default function App() {
@@ -13,6 +18,11 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="User" component={UserScreen} />
+        <Stack.Screen name="CartScreen" component={CartScreen} />
+        <Stack.Screen name="ProductListScreen" component={ProductListScreen} />
+        <Stack.Screen name="OrderCreateScreen" component={OrderCreateScreen} />
+        <Stack.Screen name="UserManagementScreen" component={UserManagementScreen} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>

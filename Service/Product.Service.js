@@ -43,7 +43,7 @@ export class ProductService {
 
         console.log(productsList);
 
-        if (result.status !== 200) {
+        if (result.data.status !== 200) {
             throw new Error(result.data.message);
         }
 
@@ -66,7 +66,7 @@ export class ProductService {
 
         console.log(JSON.stringify(result));
 
-        if (result.status !== 200) {
+        if (result.data.status !== 200) {
             throw new Error(result.data.message);
         }
 

@@ -1,11 +1,17 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export class AuthHelper {
   static #accessToken = null;
 
-  static setAccessToken(token) {
+  static async setAccessToken(token) {
     this.#accessToken = token;
+    await AsyncStorage.setItem('accessToken', token);
   }
 
-  static getAccessToken() {
+  static async getAccessToken() {
+    if (!this.#accessToken) {
+      this.#accessToken = await AsyncStorage.getItem('accessToken');
+    }
     return this.#accessToken;
   }
 
@@ -18,8 +24,9 @@ export class AuthHelper {
     return {};
   }
 
-  static clearAccessToken() {
+  static async clearAccessToken() {
     this.#accessToken = null;
+    await AsyncStorage.removeItem('accessToken');
   }
 
   static isTokenExpired() {
@@ -34,5 +41,26 @@ export class AuthHelper {
       console.log('Erro ao verificar expiração do token:', error);
       return true;
     }
+  }
+
+  static getTokenExpirationTime() {
+    if (!this.#accessToken) {
+      return null;
+    }
+    try {
+      const payload = JSON.parse(atob(this.#accessToken.split('.')[1]));
+      return new Date(payload.exp * 1000);
+    } catch (error) {
+      console.log('Erro ao obter tempo de expiração do token:', error);
+      return null;
+    }
+  }
+
+  static getTimeUntilExpiration() {
+    const expirationTime = this.getTokenExpirationTime();
+    if (!expirationTime) {
+      return null;
+    }
+    return Math.max(0, expirationTime - new Date());
   }
 }

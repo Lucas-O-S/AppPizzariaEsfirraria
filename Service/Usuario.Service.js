@@ -16,19 +16,19 @@ export class UsuarioService {
         const body = UsuarioWrapper(usuarioModel);
 
         const result = await ExecuteHttpRequest.callout({
-            url: "/login",
+            url: "/auth/login",
             method: "POST",
             body: body,
             headers: headers
         });
 
         console.log(JSON.stringify(result));
-
-        if (result.status !== 200) {
+        
+        if (result.data.status !== 200) {
             throw new Error(result.data.message);
         }
 
-        const accessToken = result.data.data.access_token;
+        const accessToken = result.data.dataUnit.access_token;
         AuthHelper.setAccessToken(accessToken);
 
         return result.data;
@@ -56,7 +56,7 @@ export class UsuarioService {
         console.log(JSON.stringify(result));
 
         const resultBody = result.data;
-        if (result.status !== 201) {
+        if (result.data.status !== 201) {
             throw new Error(resultBody.message);
         }
 
@@ -92,7 +92,7 @@ export class UsuarioService {
 
         console.log(usuariosList);
 
-        if (result.status !== 200) {
+        if (result.data.status !== 200) {
             throw new Error(result.data.message);
         }
 
@@ -114,7 +114,7 @@ export class UsuarioService {
 
         console.log(JSON.stringify(result));
 
-        if (result.status !== 200) {
+        if (result.data.status !== 200) {
             throw new Error(result.data.message);
         }
 
@@ -150,7 +150,7 @@ export class UsuarioService {
         console.log(JSON.stringify(result));
 
         const resultBody = result.data;
-        if (result.status !== 200) {
+        if (result.data.status !== 200) {
             throw new Error(resultBody.message);
         }
 
@@ -177,5 +177,29 @@ export class UsuarioService {
         }
 
         return result;
+    }
+
+    static async retrieveUser() {
+        console.log("Entrou em retrieveUser");
+
+        const headers = {
+            ...AuthHelper.getAuthHeader(),
+            ...jsonHeader
+        };
+
+        const result = await ExecuteHttpRequest.callout({
+            url: "/auth/retrieve-user",
+            method: "GET",
+            headers: headers
+        });
+
+        console.log(JSON.stringify(result));
+
+        if (result.data.status !== 200) {
+            throw new Error(result.data.message);
+        }
+
+
+        return result.data.dataUnit;
     }
 }

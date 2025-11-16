@@ -26,7 +26,7 @@ export class OrderService {
         console.log(JSON.stringify(result));
 
         const resultBody = result.data;
-        if (result.status !== 201) {
+        if (result.data.status !== 201) {
             throw new Error(resultBody.message);
         }
 

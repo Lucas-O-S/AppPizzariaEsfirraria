@@ -6,7 +6,7 @@ export default class UsuarioController {
     static async login(usuarioModel) {
         try {
             const result = await UsuarioService.login(usuarioModel);
-
+            console.log("AAAAAAAAAAAAAAA")
             return result;
         } catch (error) {
             console.log("Erro ao fazer login:", error.message);
@@ -66,6 +66,16 @@ export default class UsuarioController {
             return result;
         } catch (error) {
             console.log("Erro ao deletar usuário:", error.message);
+            throw new Error(error.message);
+        }
+    }
+
+    static async retrieveUser() {
+        try {
+            const result = await UsuarioService.retrieveUser();
+            return result;
+        } catch (error) {
+            console.log("Erro ao recuperar usuário:", error.message);
             throw new Error(error.message);
         }
     }

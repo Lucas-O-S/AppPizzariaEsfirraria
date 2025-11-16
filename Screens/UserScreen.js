@@ -1,37 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import UsuarioController from '../Controller/Usuario.Controller';
-import { AuthHelper } from '../utils/AuthHelper';
 import UsuarioModel from '../Models/UsuarioModel';
-import Cart from '../Singleton/Cart';
 
-export default function LoginScreen({ navigation }) {
+export default function UserScreen({ navigation }) {
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [userId, setUserId] = useState(null);
 
-    async function handleLogin() {
+    useEffect(() => {
+        loadUserData();
+    }, []);
+
+    async function loadUserData() {
         try {
-           
-            setLoading(true);
-           
-            const usuarioModel = new UsuarioModel({});
+            const userData = await UsuarioController.retrieveUser();
+            setName(userData.name);
+            setUserId(userData.id);
+        } catch (error) {
+            Alert.alert('Erro', error.message);
+        }
+    }
 
+    async function handleUpdate() {
+        try {
+            const usuarioModel = new UsuarioModel({});
             usuarioModel.name = name.trim();
             usuarioModel.password = password.trim();
 
-            await UsuarioController.login(usuarioModel);
-           
-            if (AuthHelper.getAccessToken() && !AuthHelper.isTokenExpired()) {
-                const userData = await UsuarioController.retrieveUser();
-                const token = AuthHelper.getAccessToken();
-                await Cart.getInstance(userData.id, token);
-                navigation.navigate('Home');
-            }
-            
-            else {
-                Alert.alert('Erro', 'Token inválido ou expirado');
-            }
+            setLoading(true);
+            await UsuarioController.updateUsuario(usuarioModel, userId);
+            Alert.alert('Sucesso', 'Dados atualizados com sucesso!');
+            navigation.goBack();
         } catch (error) {
             Alert.alert('Erro', error.message);
         } finally {
@@ -39,13 +40,13 @@ export default function LoginScreen({ navigation }) {
         }
     }
 
-    function handleRegister() {
-        navigation.navigate('Register');
+    function handleBack() {
+        navigation.goBack();
     }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
+            <Text style={styles.title}>Editar Perfil</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Nome"
@@ -55,16 +56,16 @@ export default function LoginScreen({ navigation }) {
             />
             <TextInput
                 style={styles.input}
-                placeholder="Senha"
+                placeholder="Nova Senha"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
             />
-            <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-                <Text style={styles.buttonText}>{loading ? 'Entrando...' : 'Entrar'}</Text>
+            <TouchableOpacity style={styles.button} onPress={handleUpdate} disabled={loading}>
+                <Text style={styles.buttonText}>{loading ? 'Atualizando...' : 'Atualizar'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-                <Text style={styles.registerButtonText}>Registrar</Text>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                <Text style={styles.backButtonText}>Voltar</Text>
             </TouchableOpacity>
         </View>
     );
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     button: {
-        backgroundColor: '#007bff',
+        backgroundColor: '#28a745',
         padding: 10,
         borderRadius: 5,
         alignItems: 'center',
@@ -103,15 +104,14 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
     },
-    registerButton: {
-        backgroundColor: '#28a745',
+    backButton: {
+        backgroundColor: '#007bff',
         padding: 10,
         borderRadius: 5,
         alignItems: 'center',
     },
-    registerButtonText: {
+    backButtonText: {
         color: '#fff',
         fontSize: 16,
     },
 });
-

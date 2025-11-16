@@ -63,4 +63,17 @@ export class AuthHelper {
     }
     return Math.max(0, expirationTime - new Date());
   }
+
+  static getUserIdFromToken() {
+    if (!this.#accessToken) {
+      return null;
+    }
+    try {
+      const payload = JSON.parse(atob(this.#accessToken.split('.')[1]));
+      return payload.sub;
+    } catch (error) {
+      console.log('Erro ao obter userId do token:', error);
+      return null;
+    }
+  }
 }

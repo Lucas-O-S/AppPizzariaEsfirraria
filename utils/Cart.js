@@ -9,7 +9,10 @@ export default class Cart {
             Cart.#instance = new OrderModel({ userId });
         }
         if (userId && Cart.#instance.userId !== userId) {
-            Cart.#instance.userId = userId;
+            // Accept only valid numeric userId; caller may pass string from token
+            if (!isNaN(userId)) {
+                Cart.#instance.userId = Number(userId);
+            }
         }
         return Cart.#instance;
     }

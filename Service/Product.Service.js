@@ -15,7 +15,7 @@ export class ProductService {
         const result = await ExecuteHttpRequest.callout({
             url: "/product",
             method: "GET",
-            param: { includeImages: includeImages },
+            param: { getImage: includeImages },
             headers: headers
         });
 

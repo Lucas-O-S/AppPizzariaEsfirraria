@@ -24,18 +24,8 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.title}>Home Screen</Text>
 
         <ButtonComponent
-          label="Find All Products"
-          pressFunction={() => navigation.navigate("ProductListScreen")}
-        />
-
-        <ButtonComponent
-          label="Create Order"
+          label="Criar Pedido"
           pressFunction={() => navigation.navigate("OrderCreateScreen")}
-        />
-
-        <ButtonComponent
-          label="User Management"
-          pressFunction={() => navigation.navigate("UserManagementScreen")}
         />
       </View>
     </View>

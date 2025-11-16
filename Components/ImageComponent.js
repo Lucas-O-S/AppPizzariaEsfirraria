@@ -1,53 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { TouchableOpacity, Image, Text, Alert, StyleSheet, View } from "react-native";
-import ImageHelper from "../utils/ImageHelper";
+import React from "react";
+import { View, Image, Text, StyleSheet } from "react-native";
 
-export default function ImageComponent({ value, onChange }) {
- 
-  const [image64, setImage64] = useState(value);
-
-  useEffect(() => {
-    if (value) {
-      setImage64(value);
-    }
-  }, [value]);
-
-  async function setImage() {
-    try {
-
-      const uriResult = await ImageHelper.getImageFromLibrary();
-
-        if (uriResult) {
-            const base64 = await ImageHelper.convertUriToBase64(uriResult);
-            
-            setImage64(base64);
-
-            onChange?.({ uri: uriResult, base64 });
-      
-        }
-    } catch (error) {
-      
-        console.log("Erro ao selecionar imagem:", error);
-    
-    }
-  }
-
+export default function ImageComponent({ image64, style, placeholderText = "Sem imagem" }) {
   return (
-    <TouchableOpacity style={styles.imageBox} onPress={setImage}>
+    <View style={[styles.imageBox, style]}>
       {image64 ? (
         <Image style={styles.image} source={{ uri: image64 }} />
       ) : (
-        <Text style={styles.placeholderText}>Toque para selecionar imagem</Text>
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.placeholderText}>{placeholderText}</Text>
+        </View>
       )}
-    </TouchableOpacity>
+    </View>
   );
 }
 
-
 const styles = StyleSheet.create({
   imageBox: {
-    width: "100%",
-    height: 200,
+    width: 100,
+    height: 100,
     borderWidth: 1,
     borderColor: "#999",
     borderRadius: 10,
@@ -55,10 +26,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#f0f0f0",
     overflow: "hidden",
-    marginBottom: 20,
+  },
+  placeholderContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
   },
   placeholderText: {
     color: "#999",
+    fontSize: 12,
+    textAlign: "center",
   },
   image: {
     width: "100%",

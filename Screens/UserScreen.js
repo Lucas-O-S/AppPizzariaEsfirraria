@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import UsuarioController from '../Controller/Usuario.Controller';
 import UsuarioModel from '../Models/UsuarioModel';
+import { AuthHelper } from '../utils/AuthHelper';
 
 export default function UserScreen({ navigation }) {
     const [name, setName] = useState('');
@@ -40,6 +41,18 @@ export default function UserScreen({ navigation }) {
         }
     }
 
+    async function handleLogout() {
+        try {
+            await AuthHelper.clearAccessToken();
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+            });
+        } catch (error) {
+            Alert.alert('Erro', 'Erro ao fazer logout');
+        }
+    }
+
     function handleBack() {
         navigation.goBack();
     }
@@ -63,6 +76,9 @@ export default function UserScreen({ navigation }) {
             />
             <TouchableOpacity style={styles.button} onPress={handleUpdate} disabled={loading}>
                 <Text style={styles.buttonText}>{loading ? 'Atualizando...' : 'Atualizar'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Text style={styles.logoutButtonText}>Logout</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                 <Text style={styles.backButtonText}>Voltar</Text>
@@ -101,6 +117,17 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     buttonText: {
+        color: '#fff',
+        fontSize: 16,
+    },
+    logoutButton: {
+        backgroundColor: '#dc3545',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    logoutButtonText: {
         color: '#fff',
         fontSize: 16,
     },

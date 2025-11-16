@@ -25,21 +25,20 @@ export default class Cart {
         return Cart.#instance;
     }
 
-    static async addItem(productModel, quantity = 1) {
+    static async addItem(orderItem) {
         const cart = await Cart.getInstance();
-        const existingItem = cart.items.find(item => item.productModel.id === productModel.id);
+        const existingItem = cart.items.find(item => item.productModel.id === orderItem.productModel.id);
         if (existingItem) {
-            existingItem.quantity += quantity;
+            existingItem.quantity += orderItem.quantity;
         } else {
-            const newItem = new OrderItemModel({ productModel, quantity });
-            cart.addItem(newItem);
+            cart.addItem(orderItem);
         }
         await Cart.saveToStorage();
     }
 
-    static async removeItem(productId) {
+    static async removeItem(orderItemId) {
         const cart = await Cart.getInstance();
-        const itemToRemove = cart.items.find(item => item.productModel.id === productId);
+        const itemToRemove = cart.items.find(item => item.id === orderItemId);
         if (itemToRemove) {
             cart.removeItem(itemToRemove.id);
             await Cart.saveToStorage();
@@ -78,25 +77,28 @@ export default class Cart {
         try {
             const cart = Cart.#instance;
             if (cart) {
+                // Ensure we always persist an array for items and guard productModel access
+                const itemsToPersist = Array.isArray(cart.items) ? cart.items.map(item => ({
+                    id: item.id != null ? Number(item.id) : null,
+                    orderId: item.orderId != null ? Number(item.orderId) : null,
+                    productModel: item.productModel ? {
+                        id: item.productModel.id != null ? Number(item.productModel.id) : null,
+                        name: item.productModel.name || null,
+                        description: item.productModel.description || null,
+                        price: item.productModel.price != null ? Number(item.productModel.price) : 0,
+                        productImage: item.productModel.productImage || null,
+                        imagem64: item.productModel.imagem64 || null,
+                        imagemFile: item.productModel.imagemFile || null,
+                    } : null,
+                    quantity: item.quantity != null ? Number(item.quantity) : 0,
+                    priceTotal: item.priceTotal != null ? Number(item.priceTotal) : 0,
+                })) : [];
+
                 const cartData = {
-                    userId: Cart.#userId,
-                    token: Cart.#token,
-                    items: cart.items.map(item => ({
-                        id: item.id,
-                        orderId: item.orderId,
-                        productModel: {
-                            id: item.productModel.id,
-                            name: item.productModel.name,
-                            description: item.productModel.description,
-                            price: item.productModel.price,
-                            productImage: item.productModel.productImage,
-                            imagem64: item.productModel.imagem64,
-                            imagemFile: item.productModel.imagemFile,
-                        },
-                        quantity: item.quantity,
-                        priceTotal: item.priceTotal,
-                    })),
-                    priceTotal: cart.priceTotal,
+                    userId: Cart.#userId !== undefined ? Cart.#userId : null,
+                    token: Cart.#token || null,
+                    items: itemsToPersist,
+                    priceTotal: cart.priceTotal || 0,
                 };
                 await AsyncStorage.setItem('cart', JSON.stringify(cartData));
             }
@@ -109,19 +111,41 @@ export default class Cart {
         try {
             const cartData = await AsyncStorage.getItem('cart');
             if (cartData) {
-                const parsedData = JSON.parse(cartData);
-                Cart.#userId = parsedData.userId;
-                Cart.#token = parsedData.token;
-                Cart.#instance.userId = parsedData.userId;
-                Cart.#instance.items = parsedData.items.map(itemData => {
-                    const productModel = new ProductModel(itemData.productModel);
-                    return new OrderItemModel({
-                        id: itemData.id,
-                        orderId: itemData.orderId,
-                        productModel,
-                        quantity: itemData.quantity,
+                const parsedData = JSON.parse(cartData) || {};
+                // When loading a cart from storage, userId may be null (guest) or a string.
+                // The OrderModel.userId setter throws if given null/invalid value, so only set
+                // it when we have a valid numeric userId. Also convert to Number when present.
+                Cart.#userId = parsedData.userId !== null && !isNaN(parsedData.userId) ? Number(parsedData.userId) : null;
+                Cart.#token = parsedData.token || null;
+                if (Cart.#userId !== null) {
+                    Cart.#instance.userId = Cart.#userId;
+                }
+
+                // Ensure items is an array before mapping; tolerate missing/undefined items.
+                if (Array.isArray(parsedData.items)) {
+                    Cart.#instance.items = parsedData.items.map(itemData => {
+                        const pm = itemData.productModel ? {
+                            id: itemData.productModel.id != null ? Number(itemData.productModel.id) : null,
+                            name: itemData.productModel.name || "",
+                            description: itemData.productModel.description || "",
+                            price: itemData.productModel.price != null ? Number(itemData.productModel.price) : 0,
+                            productImage: itemData.productModel.productImage || null,
+                            imagem64: itemData.productModel.imagem64 || null,
+                            imagemFile: itemData.productModel.imagemFile || null,
+                        } : null;
+
+                        const productModel = pm ? new ProductModel(pm) : null;
+
+                        return new OrderItemModel({
+                            id: itemData.id != null ? Number(itemData.id) : null,
+                            orderId: itemData.orderId != null ? Number(itemData.orderId) : null,
+                            productModel,
+                            quantity: itemData.quantity != null ? Number(itemData.quantity) : 0,
+                        });
                     });
-                });
+                } else {
+                    Cart.#instance.items = [];
+                }
             }
         } catch (error) {
             console.error('Error loading cart from storage:', error);
